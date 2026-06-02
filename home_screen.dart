@@ -259,6 +259,79 @@ class _HomeScreenState extends State<HomeScreen> {
               },
             ),
             ListTile(
+              leading: const Icon(Icons.feedback),
+              title: const Text("Feedback"),
+
+              onTap: () {
+
+                showDialog(
+                  context: context,
+
+                  builder: (context) {
+
+                    TextEditingController
+                    feedbackController =
+                    TextEditingController();
+
+                    return AlertDialog(
+
+                      title: const Text("Give Feedback"),
+
+                      content: TextField(
+                        controller: feedbackController,
+
+                        maxLines: 4,
+
+                        decoration: InputDecoration(
+                          hintText:
+                          "Enter your feedback here",
+
+                          border: OutlineInputBorder(
+                            borderRadius:
+                            BorderRadius.circular(12),
+                          ),
+                        ),
+                      ),
+
+                      actions: [
+
+                        TextButton(
+                          onPressed: () {
+                            Navigator.pop(context);
+                          },
+
+                          child: const Text("Cancel"),
+                        ),
+
+                        ElevatedButton(
+                          onPressed: () {
+
+                            String feedback =
+                                feedbackController.text;
+
+                            print(feedback);
+
+                            Navigator.pop(context);
+
+                            ScaffoldMessenger.of(context)
+                                .showSnackBar(
+
+                              const SnackBar(
+                                content:
+                                Text("Feedback Submitted"),
+                              ),
+                            );
+                          },
+
+                          child: const Text("Submit"),
+                        ),
+                      ],
+                    );
+                  },
+                );
+              },
+            ),
+            ListTile(
               leading: Icon(Icons.notifications),
               title: Text("Notifications"),
               trailing: Switch(
