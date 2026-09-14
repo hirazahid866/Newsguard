@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'login_screen.dart';
@@ -23,20 +22,22 @@ class ResultScreen extends StatefulWidget {
     required this.sentimentScore,
     required this.relatedArticles,
   });
+
   @override
-  State<ResultScreen> createState() =>
-      _ResultScreenState();
+  State<ResultScreen> createState() => _ResultScreenState();
 }
-class _ResultScreenState
-    extends State<ResultScreen> {
+
+class _ResultScreenState extends State<ResultScreen> {
   bool isNotificationOn = true;
   bool isDropdownOpen = false;
   String selectedMode = "Light";
+
   void _showProfilePopup(BuildContext context) {
     final user = FirebaseAuth.instance.currentUser;
 
     showModalBottomSheet(
       context: context,
+      backgroundColor: Theme.of(context).cardColor,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(
           top: Radius.circular(20),
@@ -56,35 +57,28 @@ class _ResultScreenState
                   borderRadius: BorderRadius.circular(10),
                 ),
               ),
-
               const SizedBox(height: 10),
-
               const CircleAvatar(
                 radius: 30,
                 child: Icon(Icons.person, size: 35),
               ),
-
               const SizedBox(height: 10),
-
-              const Text(
+              Text(
                 "User Profile",
                 style: TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.bold,
+                  color: Theme.of(context).textTheme.bodyLarge?.color,
                 ),
               ),
-
               const SizedBox(height: 6),
-
               Text(
                 user?.email ?? "No Email",
                 style: const TextStyle(
                   color: Colors.grey,
                 ),
               ),
-
               const SizedBox(height: 16),
-
               ElevatedButton(
                 onPressed: () {
                   Navigator.pop(context);
@@ -100,9 +94,20 @@ class _ResultScreenState
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
+    final textColor = isDark ? Colors.white : Colors.black;
+    final cardColor = isDark ? const Color(0xFF1E1E1E) : Colors.white;
+
+    final isReal = widget.prediction.trim().toLowerCase() == "real news";
+
     return Scaffold(
-      //  DRAWER
+      backgroundColor: theme.scaffoldBackgroundColor,
+
+      // DRAWER
       drawer: Drawer(
+        backgroundColor: theme.drawerTheme.backgroundColor ?? cardColor,
         child: ListView(
           children: [
             // HEADER
@@ -121,44 +126,66 @@ class _ResultScreenState
                 ),
               ),
             ),
+
             // HOME
             ListTile(
-              leading: const Icon(Icons.home),
-              title: const Text("Home"),
+              leading: Icon(
+                Icons.home,
+                color: textColor,
+              ),
+              title: Text(
+                "Home",
+                style: TextStyle(
+                  color: textColor,
+                ),
+              ),
               onTap: () {
                 Navigator.pop(context);
               },
             ),
+
             // FEEDBACK
             ListTile(
-              leading:
-              const Icon(Icons.feedback),
-              title:
-              const Text("Feedback"),
+              leading: Icon(
+                Icons.feedback,
+                color: textColor,
+              ),
+              title: Text(
+                "Feedback",
+                style: TextStyle(
+                  color: textColor,
+                ),
+              ),
               onTap: () {
                 showDialog(
                   context: context,
                   builder: (context) {
-                    TextEditingController
-                    feedbackController =
+                    TextEditingController feedbackController =
                     TextEditingController();
+
                     return AlertDialog(
-                      title:
-                      const Text(
-                          "Give Feedback"),
+                      backgroundColor: cardColor,
+                      title: Text(
+                        "Give Feedback",
+                        style: TextStyle(
+                          color: textColor,
+                        ),
+                      ),
                       content: TextField(
-                        controller:
-                        feedbackController,
+                        controller: feedbackController,
                         maxLines: 4,
-                        decoration:
-                        InputDecoration(
-                          hintText:
-                          "Enter your feedback",
-                          border:
-                          OutlineInputBorder(
-                            borderRadius:
-                            BorderRadius.circular(
-                                12),
+                        style: TextStyle(
+                          color: textColor,
+                        ),
+                        decoration: InputDecoration(
+                          hintText: "Enter your feedback",
+                          hintStyle: TextStyle(
+                            color: isDark
+                                ? Colors.grey[400]
+                                : Colors.grey[600],
+                          ),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
                           ),
                         ),
                       ),
@@ -167,47 +194,51 @@ class _ResultScreenState
                           onPressed: () {
                             Navigator.pop(context);
                           },
-                          child:
-                          const Text(
-                              "Cancel"),
+                          child: const Text("Cancel"),
                         ),
                         ElevatedButton(
                           onPressed: () async {
-                            String feedback = feedbackController.text.trim();
-                            // Empty feedback check
+                            String feedback =
+                            feedbackController.text.trim();
+
                             if (feedback.isEmpty) {
                               ScaffoldMessenger.of(context).showSnackBar(
                                 const SnackBar(
-                                  content: Text("Please enter your feedback"),
+                                  content:
+                                  Text("Please enter your feedback"),
                                 ),
                               );
                               return;
                             }
 
                             try {
-                              final user = FirebaseAuth.instance.currentUser;
+                              final user =
+                                  FirebaseAuth.instance.currentUser;
+
                               await FirebaseFirestore.instance
                                   .collection('users')
                                   .doc(user!.uid)
                                   .collection('feedback')
                                   .add({
                                 'feedback': feedback,
-                                'createdAt': FieldValue.serverTimestamp(),
+                                'createdAt':
+                                FieldValue.serverTimestamp(),
                               });
 
                               Navigator.pop(context);
 
                               ScaffoldMessenger.of(context).showSnackBar(
                                 const SnackBar(
-                                  content: Text("Feedback Submitted Successfully"),
+                                  content: Text(
+                                    "Feedback Submitted Successfully",
+                                  ),
                                 ),
                               );
-
                             } catch (e) {
-
                               ScaffoldMessenger.of(context).showSnackBar(
                                 SnackBar(
-                                  content: Text("Failed to submit feedback: $e"),
+                                  content:
+                                  Text("Failed to submit feedback: $e"),
                                 ),
                               );
                             }
@@ -220,75 +251,54 @@ class _ResultScreenState
                 );
               },
             ),
+
             // SETTINGS
             ListTile(
-              leading:
-              const Icon(Icons.settings),
-              title:
-              const Text("Settings"),
+              leading: Icon(
+                Icons.settings,
+                color: textColor,
+              ),
+              title: Text(
+                "Settings",
+                style: TextStyle(
+                  color: textColor,
+                ),
+              ),
               trailing: Icon(
                 isDropdownOpen
-
                     ? Icons.keyboard_arrow_up
-
                     : Icons.keyboard_arrow_down,
+                color: textColor,
               ),
               onTap: () {
                 setState(() {
-                  isDropdownOpen =
-                  !isDropdownOpen;
+                  isDropdownOpen = !isDropdownOpen;
                 });
               },
             ),
+
             // THEME DROPDOWN
             if (isDropdownOpen)
               Container(
-                padding:
-                const EdgeInsets.symmetric(
+                margin: const EdgeInsets.symmetric(horizontal: 16),
+                padding: const EdgeInsets.symmetric(
                   horizontal: 16,
                   vertical: 8,
                 ),
                 decoration: BoxDecoration(
-                  color: Theme.of(context)
-                      .brightness ==
-                      Brightness.dark
+                  color: isDark
                       ? Colors.grey[850]
                       : Colors.grey[200],
-                  borderRadius:
-                  BorderRadius.circular(
-                      8),
+                  borderRadius: BorderRadius.circular(8),
                 ),
-
-                child:
-                DropdownButton<String>(
-
+                child: DropdownButton<String>(
                   isExpanded: true,
-
                   value: selectedMode,
-
-                  underline:
-                  const SizedBox(),
-
+                  underline: const SizedBox(),
                   dropdownColor:
-                  Theme.of(context)
-                      .brightness ==
-
-                      Brightness.dark
-
-                      ? Colors.grey[900]
-
-                      : Colors.white,
-
+                  isDark ? Colors.grey[900] : Colors.white,
                   style: TextStyle(
-
-                    color: Theme.of(context)
-                        .brightness ==
-
-                        Brightness.dark
-
-                        ? Colors.white
-
-                        : Colors.black,
+                    color: textColor,
                   ),
                   items: [
                     "Light",
@@ -296,49 +306,58 @@ class _ResultScreenState
                   ].map((mode) {
                     return DropdownMenuItem(
                       value: mode,
-                      child: Text(mode),
+                      child: Text(
+                        mode,
+                        style: TextStyle(
+                          color: isDark ? Colors.white : Colors.black,
+                        ),
+                      ),
                     );
                   }).toList(),
                   onChanged: (value) {
                     if (value != null) {
                       setState(() {
-                        selectedMode =
-                            value;
+                        selectedMode = value;
                       });
-                      switch (value) {
-                        case "Light":
-                          Provider.of<
-                              ThemeProvider>(
-                              context,
-                              listen: false)
 
-                              .setTheme(
-                            ThemeMode.light,
-                          );
-                          break;
-                        case "Dark":
-                          Provider.of<
-                              ThemeProvider>(
-                              context,
-                              listen: false)
-                              .setTheme(
-                            ThemeMode.dark,
-                          );
-                          break;
+                      if (value == "Light") {
+                        Provider.of<ThemeProvider>(
+                          context,
+                          listen: false,
+                        ).setTheme(
+                          ThemeMode.light,
+                        );
+                      } else {
+                        Provider.of<ThemeProvider>(
+                          context,
+                          listen: false,
+                        ).setTheme(
+                          ThemeMode.dark,
+                        );
                       }
                     }
                   },
                 ),
               ),
+
             // LOGOUT
             ListTile(
-              leading: const Icon(Icons.logout),
-              title: const Text("Logout"),
+              leading: Icon(
+                Icons.logout,
+                color: textColor,
+              ),
+              title: Text(
+                "Logout",
+                style: TextStyle(
+                  color: textColor,
+                ),
+              ),
               onTap: () {
                 Navigator.pop(context);
 
                 showModalBottomSheet(
                   context: context,
+                  backgroundColor: cardColor,
                   shape: const RoundedRectangleBorder(
                     borderRadius: BorderRadius.vertical(
                       top: Radius.circular(20),
@@ -358,25 +377,27 @@ class _ResultScreenState
                               borderRadius: BorderRadius.circular(10),
                             ),
                           ),
-
                           const SizedBox(height: 20),
-
-                          const Text(
+                          Text(
                             "Account Options",
                             style: TextStyle(
                               fontSize: 18,
                               fontWeight: FontWeight.bold,
+                              color: textColor,
                             ),
                           ),
-
                           const SizedBox(height: 20),
-
                           ListTile(
                             leading: const Icon(
                               Icons.logout,
                               color: Colors.orange,
                             ),
-                            title: const Text("Logout"),
+                            title: Text(
+                              "Logout",
+                              style: TextStyle(
+                                color: textColor,
+                              ),
+                            ),
                             onTap: () {
                               Navigator.pop(context);
 
@@ -389,7 +410,6 @@ class _ResultScreenState
                               );
                             },
                           ),
-
                           TextButton(
                             onPressed: () {
                               Navigator.pop(context);
@@ -403,25 +423,39 @@ class _ResultScreenState
                 );
               },
             ),
+
+            // DELETE ACCOUNT
             ListTile(
-              leading: const Icon(
+              leading: Icon(
                 Icons.delete,
+                color: textColor,
               ),
-              title: const Text("Delete Account"),
+              title: Text(
+                "Delete Account",
+                style: TextStyle(
+                  color: textColor,
+                ),
+              ),
               onTap: () {
                 showDialog(
                   context: context,
                   builder: (context) {
                     return AlertDialog(
+                      backgroundColor: cardColor,
                       shape: RoundedRectangleBorder(
-                        borderRadius:
-                        BorderRadius.circular(30),
+                        borderRadius: BorderRadius.circular(30),
                       ),
-                      title: const Text(
+                      title: Text(
                         "Delete Account",
+                        style: TextStyle(
+                          color: textColor,
+                        ),
                       ),
-                      content: const Text(
+                      content: Text(
                         "Are you sure you want to delete your account?",
+                        style: TextStyle(
+                          color: textColor,
+                        ),
                       ),
                       actions: [
                         TextButton(
@@ -441,11 +475,7 @@ class _ResultScreenState
                                   (route) => false,
                             );
                           },
-                          child: const Text(
-                            "Delete",
-                            style: TextStyle(
-                            ),
-                          ),
+                          child: const Text("Delete"),
                         ),
                       ],
                     );
@@ -456,6 +486,7 @@ class _ResultScreenState
           ],
         ),
       ),
+
       // APP BAR
       appBar: AppBar(
         backgroundColor: Colors.blue,
@@ -489,69 +520,68 @@ class _ResultScreenState
       // BODY
       body: SingleChildScrollView(
         child: Padding(
-          padding:
-          const EdgeInsets.all(20),
+          padding: const EdgeInsets.all(20),
           child: Column(
             children: [
               const SizedBox(height: 20),
+
               // NEWS CARD
               Card(
+                color: cardColor,
                 elevation: 5,
-                shape:
-                RoundedRectangleBorder(
-                  borderRadius:
-                  BorderRadius.circular(
-                      20),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(20),
                 ),
                 child: Padding(
-                  padding:
-                  const EdgeInsets.all(20),
+                  padding: const EdgeInsets.all(20),
                   child: Column(
                     crossAxisAlignment:
-                    CrossAxisAlignment
-                        .start,
+                    CrossAxisAlignment.start,
                     children: [
-                      const Text(
+                      Text(
                         "News Headline",
                         style: TextStyle(
                           fontSize: 22,
-                          fontWeight:
-                          FontWeight.bold,
+                          fontWeight: FontWeight.bold,
+                          color: textColor,
                         ),
                       ),
-                      const SizedBox(
-                          height: 15),
+                      const SizedBox(height: 15),
                       Text(
                         widget.userInput,
-                        style:
-                        const TextStyle(
+                        style: TextStyle(
                           fontSize: 17,
+                          color: textColor,
                         ),
                       ),
                     ],
                   ),
                 ),
               ),
+
               const SizedBox(height: 25),
+
               // RESULT CARD
               Container(
                 width: double.infinity,
-                padding:
-                const EdgeInsets.all(25),
+                padding: const EdgeInsets.all(25),
                 decoration: BoxDecoration(
-                  color:
-                  Colors.red.shade100,
-                  borderRadius:
-                  BorderRadius.circular(
-                      20),
+                  color: isReal
+                      ? (isDark
+                      ? const Color(0xFF173A24)
+                      : Colors.green.shade100)
+                      : (isDark
+                      ? const Color(0xFF421E1E)
+                      : Colors.red.shade100),
+                  borderRadius: BorderRadius.circular(20),
                 ),
                 child: Column(
                   children: [
                     Icon(
-                      widget.prediction == "Real News"
+                      isReal
                           ? Icons.check_circle
                           : Icons.cancel,
-                      color: widget.prediction == "Real News"
+                      color: isReal
                           ? Colors.green
                           : Colors.red,
                       size: 70,
@@ -562,7 +592,7 @@ class _ResultScreenState
                       style: TextStyle(
                         fontSize: 30,
                         fontWeight: FontWeight.bold,
-                        color: widget.prediction == "Real News"
+                        color: isReal
                             ? Colors.green
                             : Colors.red,
                       ),
@@ -570,9 +600,12 @@ class _ResultScreenState
                   ],
                 ),
               ),
-              //show articles
+
               const SizedBox(height: 25),
+
+              // RELATED ARTICLES
               Card(
+                color: cardColor,
                 elevation: 5,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(20),
@@ -580,77 +613,91 @@ class _ResultScreenState
                 child: Padding(
                   padding: const EdgeInsets.all(20),
                   child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                    crossAxisAlignment:
+                    CrossAxisAlignment.start,
                     children: [
-
-                      const Text(
+                      Text(
                         "Related News from Trusted Sources",
                         style: TextStyle(
                           fontSize: 22,
                           fontWeight: FontWeight.bold,
+                          color: textColor,
                         ),
                       ),
-
                       const SizedBox(height: 15),
 
                       if (widget.relatedArticles.isEmpty)
-                        const Text(
+                        Text(
                           "No articles found supporting this claim",
+                          style: TextStyle(
+                            color: textColor,
+                          ),
                         ),
-                      ...widget.relatedArticles.map((article) {
 
+                      ...widget.relatedArticles.map((article) {
                         return Card(
-                          margin: const EdgeInsets.only(bottom: 10),
+                          color: isDark
+                              ? const Color(0xFF2A2A2A)
+                              : Colors.white,
+                          margin:
+                          const EdgeInsets.only(bottom: 10),
                           child: ListTile(
                             title: Text(
-                              article["title"]?.toString() ?? "No Title",
+                              article["title"]?.toString() ??
+                                  "No Title",
+                              style: TextStyle(
+                                color: textColor,
+                              ),
                             ),
                             subtitle: Text(
-                              article["source"]?["name"]?.toString() ?? "Unknown Source",
+                              article["source"]?["name"]
+                                  ?.toString() ??
+                                  "Unknown Source",
+                              style: TextStyle(
+                                color: isDark
+                                    ? Colors.grey[400]
+                                    : Colors.grey[700],
+                              ),
                             ),
                           ),
                         );
-
                       }).toList(),
                     ],
                   ),
                 ),
               ),
+
               const SizedBox(height: 25),
-              // reliability score
+
+              // RELIABILITY SCORE
               Card(
+                color: cardColor,
                 elevation: 5,
-                shape:
-                RoundedRectangleBorder(
-                  borderRadius:
-                  BorderRadius.circular(
-                      20),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(20),
                 ),
-                child:  Padding(
-                  padding:
-                  EdgeInsets.all(25),
+                child: Padding(
+                  padding: const EdgeInsets.all(25),
                   child: Column(
                     children: [
                       Text(
                         "Reliability Score",
                         style: TextStyle(
                           fontSize: 24,
-                          fontWeight:
-                          FontWeight.bold,
+                          fontWeight: FontWeight.bold,
+                          color: textColor,
                         ),
                       ),
-                      SizedBox(height: 25),
+                      const SizedBox(height: 25),
                       CircleAvatar(
                         radius: 55,
                         backgroundColor: Colors.blue,
                         child: Text(
                           "${widget.reliability.toStringAsFixed(1)}%",
-                          style: TextStyle(
-                            color:
-                            Colors.white,
+                          style: const TextStyle(
+                            color: Colors.white,
                             fontSize: 30,
-                            fontWeight:
-                            FontWeight.bold,
+                            fontWeight: FontWeight.bold,
                           ),
                         ),
                       ),
@@ -658,64 +705,72 @@ class _ResultScreenState
                   ),
                 ),
               ),
+
               const SizedBox(height: 25),
+
               // SENTIMENT
               Card(
+                color: cardColor,
                 elevation: 5,
-                shape:
-                RoundedRectangleBorder(
-                  borderRadius:
-                  BorderRadius.circular(
-                      20),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(20),
                 ),
-                child: const Padding(
-                  padding:
-                  EdgeInsets.all(20),
+                child: Padding(
+                  padding: const EdgeInsets.all(20),
                   child: Row(
                     children: [
                       Icon(
-                        Icons
-                            .sentiment_dissatisfied,
-                        color: Colors.red,
+                        widget.sentiment.toLowerCase() ==
+                            "positive"
+                            ? Icons.sentiment_satisfied
+                            : widget.sentiment.toLowerCase() ==
+                            "negative"
+                            ? Icons.sentiment_dissatisfied
+                            : Icons.sentiment_neutral,
+                        color:
+                        widget.sentiment.toLowerCase() ==
+                            "positive"
+                            ? Colors.green
+                            : widget.sentiment.toLowerCase() ==
+                            "negative"
+                            ? Colors.red
+                            : Colors.orange,
                         size: 35,
                       ),
-                      SizedBox(width: 15),
-                      Text(
-                        "Negative Sentiment",
-                        style: TextStyle(
-                          fontSize: 22,
-                          fontWeight:
-                          FontWeight.bold,
+                      const SizedBox(width: 15),
+                      Expanded(
+                        child: Text(
+                          "${widget.sentiment} Sentiment",
+                          style: TextStyle(
+                            fontSize: 22,
+                            fontWeight: FontWeight.bold,
+                            color: textColor,
+                          ),
                         ),
                       ),
                     ],
                   ),
                 ),
               ),
+
               const SizedBox(height: 35),
-              // BUTTON
+
+              // CHECK AGAIN BUTTON
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
                   onPressed: () {
-                    Navigator.pop(context,true);
+                    Navigator.pop(context, true);
                   },
-                  style:
-                  ElevatedButton.styleFrom(
+                  style: ElevatedButton.styleFrom(
                     backgroundColor:
-                    const Color(
-                        0xff0B4F7D),
-                    padding:
-                    const EdgeInsets
-                        .symmetric(
+                    const Color(0xff0B4F7D),
+                    padding: const EdgeInsets.symmetric(
                       vertical: 18,
                     ),
-                    shape:
-                    RoundedRectangleBorder(
+                    shape: RoundedRectangleBorder(
                       borderRadius:
-                      BorderRadius
-                          .circular(
-                          15),
+                      BorderRadius.circular(15),
                     ),
                   ),
                   child: const Text(
@@ -727,6 +782,7 @@ class _ResultScreenState
                   ),
                 ),
               ),
+
               const SizedBox(height: 30),
             ],
           ),
